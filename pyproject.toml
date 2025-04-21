@@ -1,0 +1,150 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "todo-api"
+version = "0.1.0"
+description = "An example API with hatch template using FastAPI, Alembic, and SQLAlchemy."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = [
+    "asyncio",
+    "fastapi",
+    "fastapi-template",
+    "hatch",
+    "pyright",
+    "pytest",
+    "python3",
+    "ruff",
+    "sqlalchemy",
+    "testcontainers",
+    "uv",
+]
+authors = []
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+    "mcp",
+    "mcp[cli]",
+    "google-adk>=0.1.0,<0.2.0",
+    "aiofiles>=24.1.0,<25.0.0",
+    "alembic>=1.13.2,<2.0.0",
+    "asyncpg>=0.29.0,<0.30.0",
+    "fastapi[all]>=0.115.0,<0.116.0",
+    "greenlet>=3.0.3,<4.0.0",
+    "psycopg2-binary>=2.9.9,<3.0.0",
+    "sqlalchemy>=2.0.31,<3.0.0",
+]
+
+[project.optional-dependencies]
+# Optional dependencies for testing, linting, and hooks
+test = ["anyio", "pytest", "testcontainers"]
+lint = ["bandit", "pyright", "ruff"]
+hooks = ["pre-commit"]
+
+[tool.hatch.envs.default]
+# Default environment settings
+python = "3.12"
+installer = "uv"
+path = ".hatch/default"
+
+[tool.hatch.envs.default.scripts]
+# Default environment scripts for development and database operations
+dev = "fastapi dev {args:src/todos/main.py}"
+make_migrations = "alembic revision --autogenerate"
+upgrade = "alembic upgrade head"
+seed_db = "python {args:src/cli.py} seed-db"
+
+[tool.hatch.envs.default.env-vars]
+# Enable AsyncIO debug mode
+PYTHONASYNCIODEBUG = "1"
+
+[tool.hatch.envs.test]
+features = ["test"]
+path = ".hatch/test"
+
+[tool.hatch.envs.test.scripts]
+test = "pytest {args:src/tests} -s"
+
+[tool.hatch.envs.hatch-static-analysis]
+features = ["lint"]
+path = ".hatch/hatch_static_analysis"
+
+[tool.hatch.envs.hatch-static-analysis.scripts]
+format-check = ["ruff format --check"]
+format-fix = ["ruff format"]
+lint-check = ["ruff check", "pyright", "bandit -c pyproject.toml -r src"]
+lint-fix = ["ruff check --fix"]
+
+[tool.hatch.envs.hatch-static-analysis.env-vars]
+# Automatically use the latest available version of Pyright
+PYRIGHT_PYTHON_FORCE_VERSION = "latest"
+
+[tool.hatch.envs.hooks]
+features = ["lint", "hooks"]
+path = ".hatch/hooks"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle
+    "F",      # Pyflakes
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "I",      # isort
+    "Q",      # flake8-quotes
+    "RUF100", # unused-noqa
+    "DTZ005", # https://docs.astral.sh/ruff/rules/call-datetime-now-without-tzinfo/
+]
+ignore = ["B008"]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+multiline-quotes = "double"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = [
+    "fastapi",
+    "httpx",
+    "pydantic",
+    "pytest",
+    "sqlalchemy",
+    "testcontainers",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "single"
+
+[tool.pyright]
+include = ["src"]
+venvPath = '.hatch'
+venv = 'test'
+reportUnsupportedDunderAll = false
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
